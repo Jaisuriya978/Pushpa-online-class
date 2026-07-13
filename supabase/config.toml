@@ -1,0 +1,33 @@
+project_id = "uebmxadidltjapcougys"
+[functions.manual-payment-submit]
+enabled = true
+verify_jwt = false
+import_map = "./functions/manual-payment-submit/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/manual-payment-submit/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/manual-payment-submit/*.html" ]
+
+[functions.wise-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/wise-webhook/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/wise-webhook/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/wise-webhook/*.html" ]
+
+[functions.create-meeting]
+enabled = true
+verify_jwt = false
+import_map = "./functions/create-meeting/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-meeting/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-meeting/*.html" ]
