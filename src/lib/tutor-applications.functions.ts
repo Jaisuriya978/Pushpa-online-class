@@ -64,24 +64,21 @@ function renderAdminEmail(app: TutorApplicationInput & { id: string; created_at:
 }
 
 async function sendAdminEmail(app: TutorApplicationInput & { id: string; created_at: string }) {
-  const lovableKey = process.env.LOVABLE_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
-  if (!lovableKey || !resendKey || !adminEmail) {
+  if (!resendKey || !adminEmail) {
     console.error("Email not sent: missing credentials", {
-      hasLovable: !!lovableKey,
       hasResend: !!resendKey,
       hasAdmin: !!adminEmail,
     });
     return { sent: false, reason: "missing_credentials" as const };
   }
   try {
-    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": resendKey,
+        Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
         from: "Pushpa Tutors <onboarding@resend.dev>",
@@ -93,7 +90,7 @@ async function sendAdminEmail(app: TutorApplicationInput & { id: string; created
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      console.error("Resend gateway error", res.status, body);
+      console.error("Resend send error", res.status, body);
       return { sent: false, reason: "gateway_error" as const };
     }
     return { sent: true };
