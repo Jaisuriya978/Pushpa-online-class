@@ -467,6 +467,7 @@ function CheckoutView({
   const [submitted, setSubmitted] = useState(false); // manual-method pending confirmation
   const [processing, setProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [showGuidancePopup, setShowGuidancePopup] = useState(false); // shown instead of the success screen
   const [method, setMethod] = useState<MethodId>("netbank");
   const [upiId, setUpiId] = useState("");
   const [selectedBank, setSelectedBank] = useState<string | null>(null);
@@ -816,24 +817,11 @@ function CheckoutView({
             )}
 
             <button
-              onClick={handlePaySecurely}
-              disabled={processing}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-bold text-white shadow-xl transition-transform hover:scale-[1.01] disabled:opacity-60 disabled:hover:scale-100"
+              onClick={() => setShowGuidancePopup(true)}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-base font-bold text-white shadow-xl transition-transform hover:scale-[1.01]"
               style={{ background: "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)" }}
             >
-              {processing ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" /> Processing…
-                </>
-              ) : isManualMethod ? (
-                <>
-                  <Send className="size-4" /> I've Sent the Payment
-                </>
-              ) : (
-                <>
-                  <Lock className="size-4" /> Pay £{total.toLocaleString()} Securely
-                </>
-              )}
+              <Send className="size-4" /> Click the button
             </button>
 
             <TrustBanner />
@@ -864,7 +852,52 @@ function CheckoutView({
           </div>
         </div>
       )}
+
+      {showGuidancePopup && (
+        <GuidancePopup onClose={() => setShowGuidancePopup(false)} />
+      )}
     </section>
+  );
+}
+
+function GuidancePopup({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-gradient-to-r from-[#0F172A] to-[#1E3A8A] px-6 py-6 text-white text-center">
+          <div className="mx-auto grid place-items-center size-14 rounded-full bg-white/15">
+            <Phone className="size-6" />
+          </div>
+          <h3 className="mt-3 text-lg font-bold">Thanks for letting us know!</h3>
+        </div>
+        <div className="p-6 text-center space-y-4">
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Our team will personally guide you through how to pay the fee. We'll reach out to
+            you shortly by phone or email to confirm the details and complete your enrollment.
+          </p>
+          <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500 space-y-1">
+            <p className="flex items-center justify-center gap-2">
+              <Phone className="size-3.5" /> +91 8939 577 588
+            </p>
+            <p className="flex items-center justify-center gap-2">
+              <Mail className="size-3.5" /> support@pushpaedu.com
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-bold text-white"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -924,156 +957,6 @@ function PaymentMethodPanel({
     }>
   >;
 }) {
-   /* if (method === "gpay") {
-    return (
-      <div className="rounded-3xl bg-white border-[3px] border-[#2563EB] shadow-xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center">
-        <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-          <QrPlaceholder />
-        </div>
-        <div className="text-center md:text-left">
-          <h4 className="text-lg font-bold text-[#0F172A]">Scan to Pay</h4>
-          <p className="mt-1 text-sm font-semibold text-[#2563EB]">Fast • Safe • Secure</p>
-          <p className="mt-3 text-sm text-slate-600 max-w-sm">
-            Open Google Pay, PhonePe, Paytm or any UPI app and scan the code to pay{" "}
-            <strong>£{total.toLocaleString()}</strong>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (method === "upi") {
-    return (
-      <div className="rounded-3xl bg-white shadow-xl border border-slate-100 p-6 md:p-8 space-y-4">
-        <h4 className="text-lg font-bold text-[#0F172A]">Pay via UPI ID</h4>
-        <p className="text-sm text-slate-600">
-          Enter your UPI ID (e.g. name@okhdfcbank) to send a collect request.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            value={upiId}
-            onChange={(e) => setUpiId(e.target.value)}
-            placeholder="yourname@upi"
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-          />
-          <button
-            disabled={!upiId.includes("@")}
-            className="rounded-xl px-5 py-3 text-sm font-bold text-white bg-[#2563EB] disabled:opacity-40"
-          >
-            Send Request
-          </button>
-        </div>
-        <p className="text-xs text-slate-400">
-          You'll get a payment request of £{total.toLocaleString()} on your UPI app to approve.
-        </p>
-      </div>
-    );
-  }
-
-  if (method === "debit" || method === "credit") {
-    return (
-      <div className="rounded-3xl bg-white shadow-xl border border-slate-100 p-6 md:p-8 space-y-4">
-        <h4 className="text-lg font-bold text-[#0F172A]">
-          Enter your {method === "debit" ? "Debit" : "Credit"} Card details
-        </h4>
-        <div className="grid gap-4">
-          <div>
-            <label className="text-xs font-semibold text-slate-500">Card Number</label>
-            <input
-              value={card.number}
-              onChange={(e) => setCard({ ...card, number: e.target.value })}
-              placeholder="1234 5678 9012 3456"
-              maxLength={19}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-500">Name on Card</label>
-            <input
-              value={card.name}
-              onChange={(e) => setCard({ ...card, name: e.target.value })}
-              placeholder="Jane Doe"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-semibold text-slate-500">Expiry</label>
-              <input
-                value={card.expiry}
-                onChange={(e) => setCard({ ...card, expiry: e.target.value })}
-                placeholder="MM/YY"
-                maxLength={5}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500">CVV</label>
-              <input
-                value={card.cvv}
-                onChange={(e) => setCard({ ...card, cvv: e.target.value })}
-                placeholder="123"
-                maxLength={4}
-                type="password"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 focus:border-[#2563EB]"
-              />
-            </div>
-          </div>
-        </div>
-        <p className="text-xs text-slate-400 flex items-center gap-1">
-          <Lock className="size-3" /> Your card details are encrypted and never stored.
-        </p>
-        <p className="text-[11px] text-amber-600 flex items-start gap-1">
-          <AlertCircle className="size-3 mt-0.5 shrink-0" />
-          For production, don't submit these raw fields yourself — use a hosted/tokenized card
-          field (e.g. Razorpay Card element, Stripe Elements) so card data never touches your
-          own servers or state, for PCI-DSS compliance.
-        </p>
-      </div>
-    );
-  } */
-
-  /* if (method === "netbank") {
-    const banks = ["HDFC Bank", "ICICI Bank", "SBI", "Axis Bank", "Kotak Mahindra", "Yes Bank"];
-    return (
-      <div className="rounded-3xl bg-white shadow-xl border border-slate-100 p-6 md:p-8 space-y-4">
-        <h4 className="text-lg font-bold text-[#0F172A]">Choose your bank</h4>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {banks.map((b) => (
-            <button
-              key={b}
-              onClick={() => setSelectedBank(b)}
-              className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold text-left transition ${
-                selectedBank === b
-                  ? "border-[#059669] bg-emerald-50 text-emerald-700"
-                  : "border-slate-100 text-slate-700 hover:border-slate-200"
-              }`}
-            >
-              {b}
-            </button>
-          ))}
-        </div>
-        {selectedBank && (
-          <p className="text-xs text-slate-500">
-            You'll be redirected to {selectedBank}'s secure login page to authorize £
-            {total.toLocaleString()}.
-          </p>
-        )}
-      </div>
-    );
-  } */
-
- /* if (method === "razorpay") {
-    return (
-      <div className="rounded-3xl bg-white shadow-xl border border-slate-100 p-6 md:p-8 text-center space-y-3">
-        <h4 className="text-lg font-bold text-[#0F172A]">Pay via Razorpay</h4>
-        <p className="text-sm text-slate-600">
-          Secure checkout powered by Razorpay. Click "Pay Securely" below to continue.
-        </p>
-      </div>
-    );
-  } */
-
   if (method === "wise") {
     return (
       <div className="rounded-3xl bg-white shadow-xl border border-slate-100 p-6 md:p-8 space-y-5">
@@ -1089,14 +972,6 @@ function PaymentMethodPanel({
   <p className="text-sm text-slate-600 mt-0.5">
     Send £{total.toLocaleString()} to our Wise account using these details, then confirm below.
   </p>
-  <a
-    href="https://wise.com/in/send-money/send-money-to-india-from-the-uk"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-[#00B9A2] hover:underline"
-  >
-    Open Wise <ArrowLeft className="size-3.5 rotate-180" />
-  </a>
 </div>
         </div>
 
@@ -1206,14 +1081,6 @@ function PaymentMethodPanel({
     Remitly doesn't support automatic merchant confirmation — send £
     {total.toLocaleString()} to the recipient below in the Remitly app, then confirm here.
   </p>
-  <a
-    href="https://www.remitly.com/gb/en/money-transfer/send-money-to-india"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-[#5A3E9E] hover:underline"
-  >
-    Open Remitly <ArrowLeft className="size-3.5 rotate-180" />
-  </a>
 </div>
         </div>
 
@@ -1566,44 +1433,3 @@ function ManualPaymentPending({
     </div>
   );
 }
-
-/* ============================ QR SVG ============================ */
-
-/*function QrPlaceholder() {
-  return (
-    <div className="w-40 h-40 md:w-48 md:h-48 relative">
-      <svg viewBox="0 0 100 100" className="w-full h-full text-[#0F172A]" fill="currentColor">
-        <rect x="5" y="5" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-        <rect x="12" y="12" width="11" height="11" fill="currentColor" />
-        <rect x="70" y="5" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-        <rect x="77" y="12" width="11" height="11" fill="currentColor" />
-        <rect x="5" y="70" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="6" />
-        <rect x="12" y="77" width="11" height="11" fill="currentColor" />
-        <rect x="37" y="5" width="6" height="6" />
-        <rect x="48" y="5" width="6" height="6" />
-        <rect x="37" y="16" width="6" height="6" />
-        <rect x="55" y="16" width="6" height="6" />
-        <rect x="5" y="37" width="6" height="6" />
-        <rect x="16" y="48" width="6" height="6" />
-        <rect x="37" y="37" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="5" />
-        <rect x="44" y="44" width="11" height="11" fill="currentColor" />
-        <rect x="70" y="37" width="6" height="6" />
-        <rect x="82" y="48" width="6" height="6" />
-        <rect x="89" y="37" width="6" height="6" />
-        <rect x="37" y="70" width="6" height="6" />
-        <rect x="48" y="77" width="6" height="6" />
-        <rect x="55" y="70" width="6" height="6" />
-        <rect x="70" y="70" width="6" height="6" />
-        <rect x="82" y="77" width="6" height="6" />
-        <rect x="77" y="89" width="6" height="6" />
-        <rect x="89" y="82" width="6" height="6" />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-white/90 rounded-full p-2 shadow-lg border border-slate-100">
-          <Check className="size-6 text-[#10B981]" />
-        </div>
-      </div>
-    </div>
-  );
-}
-*/
