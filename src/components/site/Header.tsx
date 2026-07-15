@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import pushpaLogo from "../../assets/online class pushpa.jpg";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -17,14 +18,17 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container-page flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="grid place-items-center size-9 rounded-lg bg-primary text-primary-foreground">
-            <GraduationCap className="size-5" />
-          </span>
-          <span className="font-serif text-lg font-semibold tracking-tight">
-            Pushpa<span className="text-accent">.</span>
-          </span>
-        </Link>
+       <Link to="/" className="flex items-center gap-3 group">
+  <img
+    src={pushpaLogo}
+    alt="Pushpa Online Tuition"
+    className="h-16 w-16 rounded-md object-contain"
+  />
+
+  <span className="font-serif text-lg font-semibold tracking-tight text-primary">
+    
+  </span>
+</Link>
         <nav className="hidden md:flex items-center gap-1">
           {nav.map((n) => (
             <Link
